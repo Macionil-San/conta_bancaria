@@ -2,6 +2,7 @@ package com.senai.conta_bancaria.application.service;
 
 import com.senai.conta_bancaria.application.dto.ClienteDTO;
 import com.senai.conta_bancaria.application.dto.ClienteReponseDTO;
+import com.senai.conta_bancaria.domain.entity.Conta;
 import com.senai.conta_bancaria.domain.repository.ClienteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class ClienteService {
         var novaConta = dto.conta().toEntity(cliente);
 
         boolean jaTemTipo = contas.stream()
-                .anyMatch(Conta c -> c.getClass().equals(dto.conta().getClass()) && c.isAtiva());
+                .anyMatch( c -> c.getClass().equals(novaConta.getClass()) && c.isAtiva());
 
 
         return
