@@ -22,10 +22,10 @@ public abstract class Conta {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String Id;
 
-    @Column(nullable = false,length = 20)
+    @Column(nullable = false, length = 20)
     private String numero;
 
-    @Column(nullable = false,precision = 4)
+    @Column(nullable = false, precision = 4)
     private BigDecimal saldo;
 
     @Column(nullable = false)

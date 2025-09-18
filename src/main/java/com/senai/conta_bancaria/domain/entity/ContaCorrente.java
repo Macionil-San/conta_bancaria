@@ -23,6 +23,6 @@ public class ContaCorrente extends Conta {
     private BigDecimal limite;
 
     @Column(precision = 5)
-    private  BigDecimal taxa;
+    private BigDecimal taxa;
 
 }
