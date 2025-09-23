@@ -1,10 +1,13 @@
-package com.senai.conta_bancaria;
+package com.senai.conta_bancaria_turma1;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ContaBancariaApplicationTests {
+class ContaBancariaTurma1ApplicationTests {
 
+	@Test
+	void contextLoads() {
+	}
 
 }

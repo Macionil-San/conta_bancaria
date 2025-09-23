@@ -1,4 +1,4 @@
-package com.senai.conta_bancaria.domain.entity;
+package com.senai.conta_bancaria_turma1.domain.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -10,14 +10,26 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
-@SuperBuilder
 @Entity
+@Data
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
 @NoArgsConstructor
 @DiscriminatorValue("POUPANCA")
-public class ContaPoupanca extends Conta {
+public class ContaPoupanca extends Conta{
 
     @Column(precision = 5)
-    private BigDecimal rendiento;
+    private BigDecimal rendimento;
+
+    @Override
+    public String getTipo(){
+        return "POUPANÇA";
+    }
+
+    @Override
+    public String getTipoConta() {
+        return "POUPANÇA";
+    }
 }
+
+
