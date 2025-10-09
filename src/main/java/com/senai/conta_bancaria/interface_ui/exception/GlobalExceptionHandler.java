@@ -65,7 +65,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        problem.setTitle("Tipo de parâmetro inválido");
+        problem.setTitle("Tipo de parâmetro inváliduu");
         problem.setDetail(String.format(
                 "O parâmetro '%s' deve ser do tipo '%s'. Valor recebido: '%s'",
                 ex.getName(),
