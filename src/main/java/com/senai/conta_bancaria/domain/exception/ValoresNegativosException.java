@@ -2,6 +2,6 @@ package com.senai.conta_bancaria.domain.exception;
 
 public class ValoresNegativosException extends RuntimeException {
     public ValoresNegativosException(String operacao) {
-        super("Não é possível realizar " + operacao + " com valores negativos.");
+        super("O valor de " + operacao + " deve ser maior que zero.");
     }
 }

@@ -1,78 +1,93 @@
 package com.senai.conta_bancaria.application.service;
 
-import com.senai.conta_bancaria.application.dto.ClienteAtualizadoDTO;
-import com.senai.conta_bancaria.application.dto.ClienteRegistroDTO;
-import com.senai.conta_bancaria.application.dto.ClienteResponseDTO;
+import com.senai.conta_bancaria.application.dto.ClienteAtualizacaoDto;
+import com.senai.conta_bancaria.application.dto.ClienteRegistroDto;
+import com.senai.conta_bancaria.application.dto.ClienteResponseDto;
 import com.senai.conta_bancaria.domain.entity.Cliente;
-import com.senai.conta_bancaria.domain.exception.ContaMesmoTipoException;
+import com.senai.conta_bancaria.domain.entity.Conta;
+import com.senai.conta_bancaria.domain.exception.ContaDeMesmoTipoException;
 import com.senai.conta_bancaria.domain.exception.EntidadeNaoEncontradaException;
 import com.senai.conta_bancaria.domain.repository.ClienteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ClienteService {
-
     private final ClienteRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
-    public ClienteResponseDTO registrarCliente(ClienteRegistroDTO dto) {
-
-        var cliente = repository.findByCpfAndAtivoTrue(dto.cpf()).orElseGet(
-                () -> repository.save(dto.toEntity())
+    // CREATE
+    @PreAuthorize("hasAnyRole('ADMIN','GERENTE')")
+    public ClienteResponseDto registrarCliente(ClienteRegistroDto dto) {
+        Cliente clienteRegistrado = repository // verifica se o cliente já existe
+                .findByCpfAndAtivoTrue(dto.cpf())
+                .orElseGet( // se não existir, cria um novo
+                        () -> repository.save(dto.toEntity())
                 );
-        var contas = cliente.getContas();
-        var novaConta = dto.contaDTO().toEntity(cliente);
+        List<Conta> contas = clienteRegistrado.getContas();
+        Conta novaConta = dto.conta().toEntity(clienteRegistrado);
 
-        boolean jaTemTipo = contas.stream().anyMatch(
-                c -> c.getClass().equals(novaConta.getClass()) && c.isAtiva()
-                );
-        if (jaTemTipo)
-            throw new ContaMesmoTipoException();
+        boolean temMesmoTipo = contas // verifica se o cliente já tem uma conta do mesmo tipo
+                .stream()
+                .anyMatch(c -> c.getTipo().equals(novaConta.getTipo()) && c.isAtivo());
+        if (temMesmoTipo)
+            throw new ContaDeMesmoTipoException(novaConta.getTipo());
 
-        cliente.getContas().add(novaConta);
-
-        return ClienteResponseDTO.fromEntity(repository.save(cliente));
+        clienteRegistrado.getContas().add(novaConta);
+        clienteRegistrado.setSenha(passwordEncoder.encode(dto.senha()));
+        return ClienteResponseDto.fromEntity(repository.save(clienteRegistrado));
     }
 
-    public List<ClienteResponseDTO> listarClientesAtivos() {
-        return repository.findAllByAtivoTrue().stream()
-                .map(ClienteResponseDTO::fromEntity)
+    // READ
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAnyRole('ADMIN','GERENTE')")
+    public List<ClienteResponseDto> listarTodosOsClientes() {
+        return repository
+                .findAllByAtivoTrue()
+                .stream()
+                .map(ClienteResponseDto::fromEntity)
                 .toList();
     }
 
-    public ClienteResponseDTO buscarClienteAtivoPorCpf(String cpf) {
-        var cliente = buscarClientePorCpfEAtivo(cpf);
-        return ClienteResponseDTO.fromEntity(cliente);
+    @Transactional(readOnly = true)
+    public ClienteResponseDto buscarCliente(Long cpf) {
+        return ClienteResponseDto.fromEntity(procurarClienteAtivo(cpf));
     }
 
-
-
-    public ClienteResponseDTO atualizarCliente(String cpf, ClienteAtualizadoDTO dto) {
-        var cliente = buscarClientePorCpfEAtivo(cpf);
+    // UPDATE
+    @PreAuthorize("hasAnyRole('ADMIN','GERENTE')")
+    public ClienteResponseDto atualizarCliente(Long cpf, ClienteAtualizacaoDto dto) {
+        Cliente cliente = procurarClienteAtivo(cpf);
 
         cliente.setNome(dto.nome());
         cliente.setCpf(dto.cpf());
 
-        return ClienteResponseDTO.fromEntity(repository.save(cliente));
+        return ClienteResponseDto.fromEntity(repository.save(cliente));
     }
 
-    public void deletarCliente(String cpf) {
-        var cliente = buscarClientePorCpfEAtivo(cpf);
-        cliente.setAtivo(false);
+    // DELETE
+    @PreAuthorize("hasAnyRole('ADMIN','GERENTE')")
+    public void apagarCliente(Long cpf) {
+        Cliente cliente = procurarClienteAtivo(cpf);
 
-        cliente.getContas().forEach(
-                conta -> conta.setAtiva(false)
-        );
+        cliente.setAtivo(false);
+        cliente.getContas()
+                .forEach(c -> c.setAtivo(false));
+
         repository.save(cliente);
     }
 
-    private Cliente buscarClientePorCpfEAtivo(String cpf) {
-        var cliente = repository.findByCpfAndAtivoTrue(cpf).orElseThrow(
-                () -> new EntidadeNaoEncontradaException("cliente")
-        );
-        return cliente;
+    // Mét0do auxiliar para as requisições
+    private Cliente procurarClienteAtivo(Long cpf) {
+        return repository
+                .findByCpfAndAtivoTrue(cpf)
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("cliente"));
     }
 }

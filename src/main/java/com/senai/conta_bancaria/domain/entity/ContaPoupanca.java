@@ -16,9 +16,8 @@ import java.math.BigDecimal;
 @SuperBuilder
 @NoArgsConstructor
 @DiscriminatorValue("POUPANCA")
-public class ContaPoupanca extends Conta{
-
-    @Column(precision = 19, scale = 4)
+public class ContaPoupanca extends Conta {
+    @Column(precision = 19, scale = 2)
     private BigDecimal rendimento;
 
     @Override
