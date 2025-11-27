@@ -1,7 +1,10 @@
 package com.senai.conta_bancaria.domain.enums;
 
 public enum PagamentoStatus {
-    ADMIN,
-    GERENTE,
-    CLIENTE
+    SUCESSO,
+    FALHA,
+    SALDO_INSUFICIENTE,
+    BOLETO_VENCIDO,
+    AGUARDANDO_AUTENTICACAO,
+    AUTENTICACAO_EXPIRADA
 }
